@@ -1,11 +1,69 @@
 
+# Using Test with Test:Unit
+require "test/unit"
+class ArithmeticTest < Test::Unit::TestCase
+    def test_addition
+        assert 1 + 1 == 2
+    end
+end
+assert_equal(2, 1 + 1)
 
+=begin
+Other assertion methods include assert_nil(obj), assert_kind_of(klass, obj), 
+assert_respond_to(obj, message), assert_match(regexp, string), and flunk. Take a look at 
+ri Test::Unit::Assertions for more detail.
+=end
+
+=begin
+$ ruby test_arithmetic.rb
+Loaded suite test_arithmetic
+Started
+.
+Finished in 0.002801 seconds.
+1 tests, 1 assertions, 0 failures, 0 errors
+=end
+
+def test_subtraction
+    assert_equal(1.8, 1.9 - 0.1)
+end
+
+# - Fixtures - Listing 11-10. A Test Case with a Fixture
+# teardown, setup
+require "test/unit"
+class RemoteHostTest < Test::Unit::TestCase
+    def setup
+        @session = RemoteHost.new("testserver.example.org")
+    end
+    def teardown
+        @session.close
+    end
+    def test_echo
+        assert_equal("ping", @session.echo("ping").stdout)
+    end
+end
+
+# testsuite, just include the testcase file.
+# ts_xx.rb
+require "test/unit"
+require "tc_arithmetic"
+require "tc_linalg"
+require "tc_diophantine"
+
+# Listing 11-12. Using Rake to Define a Test Task
+Rake::TestTask.new do |t|
+    t.test_files = FileList["test/tc_*.rb"]
+end
+
+
+# the simplest test
 if foo ! = 'blah'
     puts "i expected 'blah' but foo contains #{{foo}}"
 end
 
+# Test::Unit::TestCase
+# test_my_func method
+# assert 
 require "test/unit"
-
 class MyThingieTest < Test::Unit::TestCase
     def test_must_be_empty
         #...
@@ -15,13 +73,12 @@ class MyThingieTest < Test::Unit::TestCase
     end
 end
 
-# test_unit_extensions.rb
+# test_unit_extensions.rb - 
+# using must instead of define test_xx functions @ TestCase
 module Test::Unit
   # Used to fix a minor minitest/unit incompatibility in flexmock 
   AssertionFailedError = Class.new(StandardError)
-  
   class TestCase
-   
     def self.must(name, &block)
       test_name = "test_#{name.gsub(/\s+/,'_')}".to_sym
       defined = instance_method(test_name) rescue false
@@ -34,7 +91,6 @@ module Test::Unit
         end
       end
     end
-
   end
 end
 
@@ -49,23 +105,26 @@ class MyThingieTest < Test::Unit::TestCase
     end
 end
 
+# Test-driven development in action
+=begin
 >> StyleParser.process("Some <b>bold</b> and <i>italic</i> text")
 => ["Some ", "<b>", "bold", "</b>", " and ", "<i>", "italic", "</i>", " text"]
+=end
 
-
+# the first iteration
 class TestInlineStyleParsing < Test::Unit::TestCase
   must "simply return the string if styles are not found" do
     @pdf = Prawn::Document.new
     assert_equal "Hello World", @pdf.parse_inline_styles("Hello World")
   end
 end
-
 class Prawn::Document
   def parse_inline_styles(text)
     text
   end
 end
 
+# the second iteration
 class TestInlineStyleParsing < Test::Unit::TestCase
   must "simply return the string if styles are not found" do
     @pdf = Prawn::Document.new
@@ -76,7 +135,7 @@ class TestInlineStyleParsing < Test::Unit::TestCase
     assert_equal ["Hello ", "<i>", "Fine", "</i>", " World"],
                   @pdf.parse_inline_styles("Hello <i>Fine</i> World")
   end
-Designing for Testability    |    5  must "parse bold tags" do
+  must "parse bold tags" do
     @pdf = Prawn::Document.new
     assert_equal ["Some very ", "<b>", "bold text", "</b>"],
       @pdf.parse_inline_styles("Some very <b>bold text</b>")
@@ -108,7 +167,6 @@ must "parse mixed italic and bold tags" do
   assert_equal ["Hello ", "<i>", "Fine ", "<b>", "World", "</b>", "</i>"],
     @pdf.parse_inline_styles("Hello <i>Fine <b>World</b></i>")
 end
-
 
 class TestInlineStyleParsing < Test::Unit::TestCase
   def setup
@@ -413,10 +471,21 @@ end
 
 # Test Helpers
 require File.dirname(__FILE__) + "/test_helpers"
-
+# Codes that really test.
+class PolygonTest < Test::Unit::TestCase
+  must "draw each line passed to polygon()" do
+    @pdf = Prawn::Document.new
+    @pdf.polygon([100,500],[100,400],[200,400])
+    line_drawing = observer(LineDrawingObserver)
+    assert_equal [[100,500],[100,400],[200,400],[100,500]],
+                   line_drawing.points
+  end
+end
+# test_helpers.rb
 require "rubygems"
 require "test/unit"
 $LOAD_PATH << File.join(File.dirname(__FILE__), '..', 'lib')
+# $:.unshift(File.join(File.dirname(__FILE__),'..','lib'))
 require "prawn"
 gem 'pdf-reader', ">=0.7.3"
 require "pdf/reader"
@@ -436,23 +505,11 @@ def parse_pdf_object(obj)
 end
 puts "Prawn tests: Running on Ruby Version: #{RUBY_VERSION}"
 
-class PolygonTest < Test::Unit::TestCase
-  must "draw each line passed to polygon()" do
-    @pdf = Prawn::Document.new
-    @pdf.polygon([100,500],[100,400],[200,400])
-    line_drawing = observer(LineDrawingObserver)
-    assert_equal [[100,500],[100,400],[200,400],[100,500]],
-                   line_drawing.points
-  end
-end
-
-
 
 
 # Custom Assertions
 assert bob.current_zone.eql?(Zone.new("4"))
 assert_in_zone("4", bob)
-
 module Test
     module Unit
         def assert_in_zone(expected,person)
@@ -464,6 +521,9 @@ module Test
 end
 
 
+# Library code with test, which is only runned when the library is executed.
+# $0($PROGRAM_NAME)，The name of the top-level Ruby program being executed.
+# __FILE__， The name of the current source ﬁle.
 class Foo
   ...
 end
@@ -475,8 +535,7 @@ if __FILE__ == $PROGRAM_NAME
 end
 
 
-
-
+# Testing Blog
 require "builder"
 require "ostruct"
 class Blog < OpenStruct
@@ -507,26 +566,25 @@ class Blog < OpenStruct
   end
 end
 
-
-
 require "time"
 class BlogTest < Test::Unit::TestCase
-FEED = <<-EOS
-<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
-><channel><title>Awesome</title><link>http://majesticseacreature.com/</link>
-<description>Totally awesome</description><language>en-us</language><item>
-<title>First Post</title><description>Nothing interesting</description>
-<author>Gregory Brown</author><pubDate>2008-08-08 00:00:00 -0400</pubDate>
-<link>http://majesticseacreature.com/awesome.html</link>
-<guid>http://majesticseacreature.com/awesome.html</guid></item></channel></rss>
-EOS
+  FEED = <<-EOS
+  <?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+  ><channel><title>Awesome</title><link>http://majesticseacreature.com/</link>
+  <description>Totally awesome</description><language>en-us</language><item>
+  <title>First Post</title><description>Nothing interesting</description>
+  <author>Gregory Brown</author><pubDate>2008-08-08 00:00:00 -0400</pubDate>
+  <link>http://majesticseacreature.com/awesome.html</link>
+  <guid>http://majesticseacreature.com/awesome.html</guid></item></channel></rss>
+  EOS
+
   def setup
     @blog = Blog.new
     @blog.title       = "Awesome"
     @blog.domain      = "majesticseacreature.com"
     @blog.description = "Totally awesome"
     @blog.author      = "Gregory Brown"
-Advanced Testing Techniques    |    23    entry = OpenStruct.new
+    entry = OpenStruct.new
     entry.title          = "First Post"
     entry.description    = "Nothing interesting"
     entry.published_date = Time.parse("08/08/2008")
@@ -536,19 +594,15 @@ Advanced Testing Techniques    |    23    entry = OpenStruct.new
   must "have a totally awesome RSS feed" do
     assert_equal FEED.delete("\n"), @blog.to_rss
   end
-end
-
-
-
   must "have a totally awesome RSS feed" do
     assert_equal File.read("expected.rss"), @blog.to_rss
   end
-
-
+end
 
 require "time"
 require "nokogiri"
 class BlogTest < Test::Unit::TestCase
+
   def setup
     @blog = Blog.new
     @blog.title       = "Awesome"
@@ -563,6 +617,7 @@ class BlogTest < Test::Unit::TestCase
     @blog.entries << entry
     @feed = Nokogiri::XML(@blog.to_rss)
   end
+
   must "be RSS v 2.0" do
     assert_equal "2.0", @feed.at("rss")["version"]
   end
@@ -578,6 +633,7 @@ class BlogTest < Test::Unit::TestCase
   must "have an entry with the title: First Post" do
     assert_equal "First Post", text_at("item", "title")
   end
+
   def text_at(*args)
     args.inject(@feed) { |s,r| s.send(:at, r) }.inner_text
   end
