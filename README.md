@@ -16,3 +16,11 @@
 
  - git的方式，所以要经常ci，保留记录点，和给出阶段性注释
  - 在本地有git库，同时上传到github上
+
+### Updated
+
+ - 2012年11月24日
+    - 统一代码和相关文档的位置（从原本的iLearn到Github/siva_learning_ruby目录下）以git方式统一管理
+    - 整理Topics结构（全面记录，定期整理，分层，聚集）
+    - 行为习惯（每天晚上睡觉前必须更新，每个代码文档可以有description之类的，主要是code，文档用注释写，可以定期总结成md形式的文档）
+    - datamapper 继续学习 rspec继续学习
